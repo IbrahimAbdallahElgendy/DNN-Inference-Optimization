@@ -78,27 +78,27 @@
 
   安卓客户端的界面比较简单，如下所示，重要信息都打印在log日志中，注意观察日志。界面中每个button和Android代码Activity文件的对应关系如下：
 
-![img](README.assets/clip_image002.png)
+  ![img](README.assets/clip_image002.png)
 
-​	对应Activity代码所在位置：android/app/src/main/java/aflak/me/tensorflowlitexor/xxx.java。
+  ​	对应Activity代码所在位置：android/app/src/main/java/aflak/me/tensorflowlitexor/xxx.java。
 
-​	服务端:
+  ​	服务端:
 
-​	安卓端上述功能中的【移动设备每层上载传输延迟统计】、【移动设备每层下载传输延迟统计】和【协作	推	理执行】，在运行前，需要提前启动服务端程序。服务端程序代码位置如下：
+  ​	安卓端上述功能中的【移动设备每层上载传输延迟统计】、【移动设备每层下载传输延迟统计】和【协作	推	理执行】，在运行前，需要提前启动服务端程序。服务端程序代码位置如下：
 
-​	TargetNetUpTime.py
+  ​	TargetNetUpTime.py
 
-​	TargetNetDownTime.py
+  ​	TargetNetDownTime.py
 
-​	server.py
+  ​	server.py
 
 - 样例
 
   系统有两种推理模式：（1）离线模式（Offine Mode），即手机端在断网的条件下，独自进行推理任务，“Time”为推理时间。（2）在线模式（Online Mode），即手机端与服务端通过网络连接通信，协同进行推理任务，“Local Time”为手机端本地推理部分任务所需时间，“Server Time”为手机端发送数据时间、服务器推理任务时间与手机端接收结果的时间。“Local Time”和“Server Time”的和为手机端与服务端协同推理的时间。
 
-![img](README.assets/clip_image002-1602646375471.png)
+  ![img](README.assets/clip_image002-1602646375471.png)
 
-​		下表为不同时长视频的两种模式推理时间及失帧情况。
+  ​	下表为不同时长视频的两种模式推理时间及失帧情况。	
 
 | Video duration | Offline   | Online        |           |      |
 | -------------- | --------- | ------------- | --------- | ---- |
