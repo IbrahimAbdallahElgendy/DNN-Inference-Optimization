@@ -4,7 +4,7 @@
 
 ## Project Introduction
 
-For the DNN model inference in the end-edge collaboration scenario, design the adaptive DNN model partition and collaborative inference scheme for chain and non-chain DNN model, which can effectively solve the problems of coarse granularity and simplification of existing schemes and obtain the approximate optimal strategy by using dynamic programming method. Moreover, design the computation latency prediction model of DNN model with consideration of device load and task characteristics, which adds the features related to device load changes such as idle CPU time and memory occupancy for the first time. And a variety of common regression models are evaluated, which can accurately predict the computation latency of the DNN model in the real scene of device load changes. In addition, an end-edge cooperative inference framework of DNN model is designed and implemented. The framework is used to verify the computation latency prediction, model partition and collaborative inference strategy.。
+For the DNN model inference in the end-edge collaboration scenario, design the adaptive DNN model partition and collaborative inference scheme for chain and non-chain DNN model, which can effectively solve the problems of coarse granularity and simplification of existing schemes and obtain the approximate optimal strategy by using dynamic programming method. Moreover, design the computation latency prediction model of DNN model with consideration of device load and task characteristics, which adds the features related to device load changes such as idle CPU time and memory occupancy for the first time. And a variety of common regression models are evaluated, which can accurately predict the computation latency of the DNN model in the real scene of device load changes. In addition, an end-edge cooperative inference framework of DNN model is designed and implemented. The framework is used to verify the computation latency prediction, model partition and collaborative inference strategy.
 
 
 
@@ -70,7 +70,7 @@ The client uses Android as the development language, and the IDE recommends usin
 
 ## Running and sample
 
-- 运行
+- Running
 
   Socket communication between client and server.
 
@@ -111,3 +111,4 @@ The client uses Android as the development language, and the IDE recommends usin
 | 20s            | 17967ms   | 198           | 12658ms   | 59   |
 
  
+
