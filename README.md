@@ -1,25 +1,27 @@
 # DNN-Inference-Optimization
 
-## 项目介绍
-
-该项目针对端边协同执行DNN模型推断的场景，设计链式和非链式DNN模型的自适应DNN模型拆分和协同推断方案，有效解决现有方案拆分粗粒度和单一化等问题，利用动态规划方法获得近似最优拆分策略。进一步设计兼顾设备负载和任务特性的DNN模型计算时延预测模型，首次加入空闲CPU时间、内存占用率等设备负载变化相关的特征，评估多种常见的回归模型，能够在设备负载变化的真实场景中准确预测不同DNN模型的计算时延。此外，设计并实现DNN模型的端边协同推断框架，对DNN模型计算时延预测、模型拆分和协同推断策略进行真实验证。
 
 
+## Project Introduction
 
-## 环境配置与说明
+For the DNN model inference in the end-edge collaboration scenario, design the adaptive DNN model partition and collaborative inference scheme for chain and non-chain DNN model, which can effectively solve the problems of coarse granularity and simplification of existing schemes and obtain the approximate optimal strategy by using dynamic programming method. Moreover, design the computation latency prediction model of DNN model with consideration of device load and task characteristics, which adds the features related to device load changes such as idle CPU time and memory occupancy for the first time. And a variety of common regression models are evaluated, which can accurately predict the computation latency of the DNN model in the real scene of device load changes. In addition, an end-edge cooperative inference framework of DNN model is designed and implemented. The framework is used to verify the computation latency prediction, model partition and collaborative inference strategy.。
 
-本程序分别由服务器端程序和客户端程序组成，开发语言与环境各不相同。
 
-服务端使用Python作为开发语言，建议使用anaconda作为Python的包管理软件，IDE建议采用PyCharm，具体开发环境配置如下：
+
+## Environment configuration and description
+
+This program consists of a server-side program and a client-side program. The development language and environment are different.
+
+The server uses Python as the development language. It is recommended to use anaconda as the Python package management software. IDE recommends using PyCharm. The specific development environment configuration is as follows:
 
 | **Environment**                     | **Description**                                           |
 | ----------------------------------- | --------------------------------------------------------- |
 | Develop operating  system           |                                                           |
 | Integrated  Development Environment | PyCharm                                                   |
-| Development  language               | Python3.7.4及以上                                         |
+| Development  language               | Python3.7.4                                               |
 | Dependent library                   | Keras,tensorflow,networksx,scilit-learn,    numpy, socket |
 
-客户端使用Android作为开发语言，IDE建议采用Android Studio,具体开发环境配置如下：
+The client uses Android as the development language, and the IDE recommends using Android Studio. The specific development environment configuration is as follows:
 
 | **Environment**                     | **Description**                                              |
 | ----------------------------------- | ------------------------------------------------------------ |
@@ -30,33 +32,33 @@
 
 
 
-## 代码介绍
+## Project code description
 
-- 计算延迟预测模型
+-  Calculate the delay prediction model
 
-  DNN层计算延迟预测模型代码位于ct_prediction_model路径下。
+  The DNN layer calculation delay prediction model code is located under the path ct_prediction_model.
 
-  数据采集工具：每个类型的DNN网络层都需要采集自己的推理训练数据，采集数据的代码都为：. ct_prediction_model/xxx/RunxxxLatencyData.py。执行后生成xxx_train.csv文件。
+  Data collection tool: Each type of DNN network layer needs to collect its own inference training data. The code for collecting data is: ct_prediction_model/xxx/RunxxxLatencyData.py. Generate xxx_train.csv file after execution.
 
-- DNN模型实现与导出
+- DNN model realization and export
 
-  模型实现：实验中采用的14个DNN模型实现代码位于： models/xxx/文件夹下的xxxModel.py。执行方式：python xxxModel.py
+  Model implementation: The 14 DNN model implementation codes used in the experiment are located in: xxxModel.py under the models/xxx/ folder. Execution method: python xxxModel.py.
 
-  模型导出：模型部署分成两个部分，一个是运行在服务器端的模型的导出，一个是安卓手机上的模型导出。14个DNN模型的实现与模型导出代码都以相同的方式组织，都是models/xxx/文件夹下的TrainXxx.py。执行方式：python TrainXxx.py。执行后生成的模型文件中，model.h5文件是运行在服务器端的模型，用Python代码读入可执行推理；xxx_model.pb文件是可以运行在安卓手机上模型文件。
+  Model export: Model deployment is divided into two parts, one is the export of the model running on the server side, and the other is the export of the model on the Android phone. The implementation of the 14 DNN models and the model export code are all organized in the same way, and they are all TrainXxx.py under the models/xxx/ folder. Execution method: python TrainXxx.py. Among the model files generated after execution, the model.h5 file is a model running on the server side, which is read into executable inference with Python code; the xxx_model.pb file is a model file that can be run on an Android phone.
 
-- 端边节点时间计算
+- End-edge node time calculation
 
-  边缘节点计算时间：代码位于： models/xxx/文件夹下的xxxModel.py。执行方式：python xxxTimeCount.py。执行后生成EdgeNodeComputeTime.txt文件。
+  Edge node calculation time: The code is located in: xxxModel.py under the models/xxx/ folder. Execution method: python xxxTimeCount.py. Generate EdgeNodeComputeTime.txt file after execution.
 
-  移动节点计算时间：代码位于:  android/app/src/main/java/aflak/me/tensorflowlitexor/LayerComputeTimeActivity.java。执行后生成MobileNodeComputeTime.txt。
+  Mobile node calculation time: The code is located at: android/app/src/main/java/aflak/me/tensorflowlitexor/LayerComputeTimeActivity.java. Generate MobileNodeComputeTime.txt after execution.
 
-  移动设备每层上载传输延迟统计：代码位于: android/app/src/main/java/aflak/me/tensorflowlitexor/LayerUpTimeActivity.java。执行后生成MobileNodeUploadTime.txt。
+  Upload transmission delay statistics for each layer of mobile devices: The code is located at: android/app/src/main/java/aflak/me/tensorflowlitexor/LayerUpTimeActivity.java. Generate MobileNodeUploadTime.txt after execution.
 
-  移动设备每层下载传输延迟统计：代码位于: android/app/src/main/java/aflak/me/tensorflowlitexor/LayerDownTimeActivity.java。执行后生成MobileNodeDownloadTime.txt。
+  Download transmission delay statistics for each layer of mobile devices: The code is located at: android/app/src/main/java/aflak/me/tensorflowlitexor/LayerDownTimeActivity.java. Generate MobileNodeDownloadTime.txt after execution.
 
-- DNN分区算法
+- DNN partition algorithm
 
-  基于DP的非链式DNN分区算法和DADS分区算法以及NeuroSurgeon分区算法的代码位置分别如下：
+  The code locations of the DP-based non-chain DNN partitioning algorithm, DADS partitioning algorithm, and NeuroSurgeon partitioning algorithm are as follows:
 
   MyDNNPartition.py
 
@@ -66,39 +68,39 @@
 
 
 
-## 运行与样例
+## Running and sample
 
 - 运行
 
-  客户端与服务端之间使用socket通信。
+  Socket communication between client and server.
 
-  客户端:
+  Client:
 
-  安卓代码位于：android文件夹下。
+  The Android code is located in: android folder.
 
-  安卓客户端的界面比较简单，如下所示，重要信息都打印在log日志中，注意观察日志。界面中每个button和Android代码Activity文件的对应关系如下：
+  The interface of the Android client is relatively simple, as shown below, important information is printed in the log, pay attention to the log. The corresponding relationship between each button in the interface and the Android code Activity file is as follows:
 
   ![img](README.assets/clip_image002.png)
 
-  ​	对应Activity代码所在位置：android/app/src/main/java/aflak/me/tensorflowlitexor/xxx.java。
+  ​	The location of the corresponding Activity code: android/app/src/main/java/aflak/me/tensorflowlitexor/xxx.java.
 
-  ​	服务端:
+  Server:
 
-  ​	安卓端上述功能中的【移动设备每层上载传输延迟统计】、【移动设备每层下载传输延迟统计】和【协作	推	理执行】，在运行前，需要提前启动服务端程序。服务端程序代码位置如下：
+  Among the above functions on the Android side, [Statistics of upload transmission delay per layer of mobile devices], [Statistics of download transmission delay per layer of mobile devices] and [Cooperative reasoning execution], before running, the server program needs to be started in advance. The server program code location is as follows:
 
-  ​	TargetNetUpTime.py
+  TargetNetUpTime.py
 
-  ​	TargetNetDownTime.py
+  TargetNetDownTime.py
 
-  ​	server.py
+  server.py
 
-- 样例
+- Sample
 
-  系统有两种推理模式：（1）离线模式（Offine Mode），即手机端在断网的条件下，独自进行推理任务，“Time”为推理时间。（2）在线模式（Online Mode），即手机端与服务端通过网络连接通信，协同进行推理任务，“Local Time”为手机端本地推理部分任务所需时间，“Server Time”为手机端发送数据时间、服务器推理任务时间与手机端接收结果的时间。“Local Time”和“Server Time”的和为手机端与服务端协同推理的时间。
+  The system has two inference modes: (1) Offine Mode, that is, when the mobile phone is disconnected from the Internet, it performs inference tasks independently, and "Time" is the inference time. (2) Online Mode, that is, the mobile phone and the server communicate through a network connection to coordinate inference tasks. "Local Time" is the time required for local inference tasks on the mobile phone, and "Server Time" is the data sent by the mobile phone. Time, server reasoning task time and mobile phone terminal receiving results. The sum of "Local Time" and "Server Time" is the time for collaborative reasoning between the mobile phone and the server.
 
   ![img](README.assets/clip_image002-1602646375471.png)
 
-  ​	下表为不同时长视频的两种模式推理时间及失帧情况。	
+  ​	The following table shows the two modes of inference time and frame loss for different duration videos.
 
 | Video duration | Offline   | Online        |           |      |
 | -------------- | --------- | ------------- | --------- | ---- |
