@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".LocalInferenceActivity">
+
+<!--    <TextureView-->
+<!--        android:id="@+id/texture_local_inference"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="300dp"-->
+<!--        android:layout_marginBottom="8dp"-->
+<!--        android:layout_marginEnd="8dp"-->
+<!--        android:layout_marginStart="8dp"-->
+<!--        android:layout_marginTop="8dp"-->
+<!--        app:srcCompat="@android:color/transparent" />-->
+
+    <Button
+        android:id="@+id/btn_begin_local_infer_200"
+        android:text="开始执行本地推理200次"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doBeginLocalInference"
+        />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+
+        >
+        <TextView
+            android:text="本地推理200次的平均推理时间(ms): "
+            android:layout_width="260dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            />
+        <TextView
+            android:id="@+id/tv_mean_local_infer_time"
+            android:text="0"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            />
+    </LinearLayout>
+</LinearLayout>

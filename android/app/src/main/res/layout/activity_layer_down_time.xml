@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".LayerDownTimeActivity">
+
+    <Button
+        android:id="@+id/btn_GoogLeNetDownTime"
+        android:text="TargetNet移动设备下载延迟"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doGoogLeDownTime"
+        />
+
+    <Button
+        android:id="@+id/btn_stop_GoogLeNetDownTime"
+        android:text="关闭TargetNet测量服务器"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doStopGoogLeDownTime"
+        />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+
+        >
+        <TextView
+            android:text="分层上载数据时间(ms,200次平均): "
+            android:layout_width="260dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            />
+        <TextView
+            android:id="@+id/tv_dt"
+            android:text="0"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            />
+
+    </LinearLayout>
+
+
+
+
+</LinearLayout>

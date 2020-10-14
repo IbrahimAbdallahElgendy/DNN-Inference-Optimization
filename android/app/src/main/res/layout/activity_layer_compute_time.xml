@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".LayerComputeTimeActivity">
+
+
+
+<!--    <TextureView-->
+<!--        android:id="@+id/texture_ct"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="300dp"-->
+<!--        android:layout_marginBottom="8dp"-->
+<!--        android:layout_marginEnd="8dp"-->
+<!--        android:layout_marginStart="8dp"-->
+<!--        android:layout_marginTop="8dp"-->
+<!--        app:srcCompat="@android:color/transparent" />-->
+
+    <Button
+        android:id="@+id/btn_ct_GoogLeNetComputeTime"
+        android:text="GoogLeNet移动设备计算延迟"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doGoogLeComputeTime"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+
+        >
+        <TextView
+            android:text="本地推理分层推理时间(ms,200次平均): "
+            android:layout_width="260dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            />
+        <TextView
+            android:id="@+id/tv_ct"
+            android:text="0"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

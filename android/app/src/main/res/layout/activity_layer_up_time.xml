@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".LayerUpTimeActivity">
+
+    <Button
+        android:id="@+id/btn_ct_GoogLeNetUpTime"
+        android:text="GoogLeNet移动设备上载延迟"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doGoogLeUpTime"
+        />
+
+<!--    <Button-->
+<!--        android:id="@+id/btn_b64len_GoogLeNet"-->
+<!--        android:text="GoogLeNet层输出大小Base64长度"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="50dp"-->
+<!--        android:padding="5dp"-->
+<!--        android:onClick="doGoogLeUpTime"-->
+<!--        />-->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+
+        >
+        <TextView
+            android:text="分层上载数据时间(ms,200次平均): "
+            android:layout_width="260dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            />
+        <TextView
+            android:id="@+id/tv_ut"
+            android:text="0"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

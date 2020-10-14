@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:gravity="center"
+android:orientation="vertical"
+tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/btnToLocalInference"
+        android:text="设备负载变化对推理时间的影响"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doLocalInference"
+        />
+
+    <Button
+        android:id="@+id/btnToLayerComputeTime"
+        android:text="移动设备每层计算延迟统计"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doLayerComputeTime"
+        />
+
+    <Button
+        android:id="@+id/btnToLayerUpTime"
+        android:text="移动设备每层上载传输延迟统计"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doLayerUpTime"
+        />
+
+    <Button
+        android:id="@+id/btnToLayerDownTime"
+        android:text="移动设备每层下载传输延迟统计"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doLayerDownTime"
+        />
+
+    <Button
+        android:id="@+id/btnToCoInference"
+        android:text="协作推理执行"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:padding="5dp"
+        android:onClick="doCoInference"
+        />
+
+</LinearLayout>
