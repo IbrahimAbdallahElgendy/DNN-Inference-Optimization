@@ -34,7 +34,7 @@ The client uses Android as the development language, and the IDE recommends usin
 
 ## Project code description
 
--  Calculate the delay prediction model
+- Calculate the delay prediction model
 
   The DNN layer calculation delay prediction model code is located under the path ct_prediction_model.
 
