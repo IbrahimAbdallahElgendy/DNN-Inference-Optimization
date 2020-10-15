@@ -112,3 +112,10 @@ The client uses Android as the development language, and the IDE recommends usin
 
  
 
+## Team information
+
+Name: AI-Maglev
+
+Members:  Yuwei Wang, Sheng Sun, Kun zhao, Kang Li
+
+Email: wangyuwei@ict.ac.cn
