@@ -1,10 +1,17 @@
 # coding=utf-8
 import copy
 from DNNTopologyHandler import construct_DNN_topology,Node,construct_multi_input_DNN_topology
-
+"""
+线性拓扑中DP的状态转移
+"""
 def dp_state_move_to_next(nodes,current_node,dp_mobile,path_mobile,dp_edge,path_edge):
 
-    assert len(current_node.previous_nodes) == 1
+    assert len(current_node.previous_nodes) == 1  # 线性拓扑的算法，除S节点外每个节点有且仅有一个前驱
+    """
+    一.dp 状态转移方程：
+        1. dp_mobile[i+1] = min { dp_mobile[i] + mobile_ct[i+1] , dp_edge[i] + download_tt[i] + mobile_ct[i+1]}
+        2. dp_edge[i+1] = min { dp_edge[i] + edge_ct[i+1] , dp_mobile[i] + upload_tt[i] + edge_ct[i+1]}
+    """
     last_node_name = current_node.previous_nodes[0]
     current_node_name = current_node.layer_name
     s_mobile = min(dp_mobile[last_node_name] + nodes[current_node_name].mobile_ct,
@@ -21,7 +28,9 @@ def dp_state_move_to_next(nodes,current_node,dp_mobile,path_mobile,dp_edge,path_
     print("s_edge: %.4f = min(%.4f + %.4f,%.4f + %.4f + %.4f)"
           % (s_edge, dp_edge[last_node_name], nodes[current_node_name].edge_ct,
              dp_mobile[last_node_name], nodes[last_node_name].upload_tt, nodes[current_node_name].edge_ct))
-
+    """
+    二.记录路径，便于回溯
+    """
     if (dp_mobile[last_node_name] + nodes[current_node_name].mobile_ct <
             dp_edge[last_node_name] + nodes[last_node_name].download_tt + nodes[current_node_name].mobile_ct):
         path_mobile[current_node_name] = (last_node_name, 'mobile')
@@ -33,9 +42,16 @@ def dp_state_move_to_next(nodes,current_node,dp_mobile,path_mobile,dp_edge,path_
     else:
         path_edge[current_node_name] = (last_node_name, 'mobile')
 
-
+"""
+线性拓扑DNN的分区算法
+"""
 def linear_partition_algorithm(nodes,S,T,input_in_mobile=True):
-
+    '''
+    input_in_mobile: 表示原始输入数据是否在mobile
+    d_mobile: 状态结束时在移动设备执行的用时
+    d_edge: 状态结束时在边缘设备执行的用时
+    '''
+    # dp = [{'d_mobile':0,'d_edge':0 } ] # 第一个元素代表S开始的时候d_mobile和d_edge的值
     dp_mobile = {}
     dp_edge = {}
     path_mobile = {}
@@ -48,28 +64,30 @@ def linear_partition_algorithm(nodes,S,T,input_in_mobile=True):
         dp_edge[S.layer_name] = 0
 
 
-    assert len(S.next_nodes) == 1
+    assert len(S.next_nodes) == 1  # 线性拓扑的算法，除T节点外每个节点有且仅有一个后继
     current_node = nodes[S.next_nodes[0]]
     # while current_node.layer_name != "T":
     while current_node.layer_name != T.layer_name:
         print(current_node.layer_name,'in linear_partition_algorithm ')
-        assert len(current_node.previous_nodes) == 1
+        assert len(current_node.previous_nodes) == 1  # 线性拓扑的算法，除S节点外每个节点有且仅有一个前驱
+        """ DP状态方程转移 & 路径回溯"""
         dp_state_move_to_next(nodes,current_node, dp_mobile, path_mobile, dp_edge, path_edge)
-
-        assert len(current_node.next_nodes) == 1
+        # 下一个节点
+        assert len(current_node.next_nodes) == 1  # 线性拓扑的算法，除T节点外每个节点有且仅有一个后继
         current_node = nodes[ current_node.next_nodes[0] ]
 
+    # current_node 现在应该是T节点
     assert len(current_node.previous_nodes) == 1
     last_node_name = current_node.previous_nodes[0]
-
+    # 最终的结果提供给边缘
     T_end_in_edge = min(dp_edge[last_node_name],dp_mobile[last_node_name] + nodes[last_node_name].upload_tt)
-
+    # 最终的结果提供给mobile
     T_end_in_mobile = min(dp_mobile[last_node_name],dp_edge[last_node_name] + nodes[last_node_name].download_tt)
     return T_end_in_edge,path_edge,T_end_in_mobile,path_mobile
 
 def find_branch_end_node(nodes, branch_begin_node):
     branch_end_candidates = []
-
+    # 记录遇到分支结束候选节点之前遇到的分支开始节点
     branch_begin_names = []
     begin_names_flag = []
     branch_begin_names.append(branch_begin_node.layer_name)
@@ -91,7 +109,7 @@ def find_branch_end_node(nodes, branch_begin_node):
                 print('next_node.previous_nodes == None','branch_begin_node.layer_name',branch_begin_node.layer_name,'next_node.layer_name',next_node.layer_name)
                 for k,v in nodes.items():
                     print(k,v)
-
+            # 既没有多个后继，也没有多个前驱，移动知道有多个后继
             while len(next_node.previous_nodes) == 1 and len(next_node.next_nodes) == 1:
                 # print('next_name',next_name,'move next')
                 next_name = next_node.next_nodes[0]
@@ -102,13 +120,13 @@ def find_branch_end_node(nodes, branch_begin_node):
                     branch_end_node_name = next_name
                     print('branch_end_node_name', branch_end_node_name, 'branch_end_index', next_node.index)
 
-
+            # 节点有多个后继，找到这条分支的第一个分支结束节点，该条路遍历结束
             if len(next_node.previous_nodes) > 1:
                 # print('next_name', next_name, 'more previous end_candidates')
                 if next_name not in branch_end_candidates:
                     branch_end_candidates.append(next_name)
                     # print('branch end candidate find ',next_name)
-
+            # 一个新的分支开始节点，加入branch_begin_names
             elif len(next_node.next_nodes) > 1:
                 # print('next_name', next_name, 'more next branch_begin_names')
                 if next_name not in begin_names_flag:
@@ -129,14 +147,16 @@ def find_branch_end_node(nodes, branch_begin_node):
     print('branch_end_node_name',branch_end_node_name,'branch_end_index',branch_end_index)
     return branch_end_node_name
 
-
+"""
+从线性分支节点状态转移到分支结束节点
+"""
 def dp_state_move_to_branch_end(nodes,branch_begin_node,
                                 dp_mobile, path_mobile, dp_edge, path_edge):
 
     print('*'*15,'move to branch end ,branch_begin_node ',branch_begin_node.layer_name,'*'*15)
 
     branch_begin_node_name = branch_begin_node.layer_name
-
+    # 一. 找到最远的分支结束节点
     branch_end_node_name = find_branch_end_node(nodes, branch_begin_node)
     branch_results = []
     for next_name in branch_begin_node.next_nodes:
@@ -147,7 +167,8 @@ def dp_state_move_to_branch_end(nodes,branch_begin_node,
         names_flag = []
         end_previous_name = []
 
-        if next_name == branch_end_node_name:
+        if next_name == branch_end_node_name:# 该条线路上没有任何节点
+            # 新的开始节点
             new_S = Node(layer_name='S',
                           next_nodes=[next_name], previous_nodes=None,
                           edge_ct=branch_begin_node.edge_ct, mobile_ct=branch_begin_node.mobile_ct,
@@ -157,7 +178,7 @@ def dp_state_move_to_branch_end(nodes,branch_begin_node,
             end_previous_name.append('S')
 
         else:
-
+            # 新的开始节点
             new_S = copy.deepcopy(nodes[next_name])
             new_S.previous_nodes = None
             new_nodes[next_name] = new_S
@@ -209,10 +230,49 @@ def dp_state_move_to_branch_end(nodes,branch_begin_node,
                                'T_ee': T_ee, 'T_ee_path': T_ee_path,
                                'T_em': T_em, 'T_em_path': T_em_path})
 
+    # 二.处理分支结束节点 => 转移过去有6种可能情况
+    # 1. 分支源点和分支汇点在同侧执行
+    ## a.后继节点1,2,…k都和分支源点0、分支汇点k+1同侧执行（例如节点0、k+1都在边缘侧执行，而中间节点1,2,…k也在边缘侧执行
+    ## b.后继节点1,2,…k都和分支源点0、分支汇点k+1不同侧执行（例如节点0、k+1都在边缘侧执行，而后继节点1,2,…k也在端侧执行，则分支的总延迟
+    ## c.后继节点1,2,…k部分和分支源点0、分支汇点k+1同侧执行，部分不同侧（例如节点0、k+1都在边缘侧执行
+    # 2. 分支源点和分支汇点在不同侧执行（例如，分支源点在边缘设备上执行，分支汇点在端设备执行）
+    ## a.后继节点1,2,…k都和分支源点0同侧执行（例如节点0在边缘侧执行，节点k+1在端侧执行，而后继节点1,2,…k也在边缘侧执行，则分支的总延迟
+    ## b.后继节点1,2,…k都和分支汇点k+1同侧执行（例如节点0在边缘侧执行，节点k+1在端侧执行，而后继节点1,2,…k也在端侧执行，则分支的总延迟
+    ## c.后继节点1,2,…k部分和分支源点0、分支汇点k+1同侧执行，部分不同侧（例如节点0在边缘侧执行，节点k+1在端侧执行，则分支的总延迟
+    """
+    一.dp 状态转移方程：
+    1.dp_mobile[branch_end_node_name] = min{
+                                            dp_mobile[branch_begin_node_name] + {
+                                            1.a  sum{mobile_ct[next_node_name] + T_mm[next_node_name]} 
+                                            1.b  upload_tt[branch_begin_node_name] + sum{ edge_ct[next_node_name] + T_em[next_node_name]}
+                                            1.c  upload_tt[branch_begin_node_name] + sum{ min( mobile_ct[next_node_name] + T_mm[next_node_name] ,edge_ct[next_node_name] + T_em[next_node_name])}
+                                            } +  mobile_ct[branch_end_node_name]
+                                            
+                                            dp_edge[branch_begin_node_name]+ {
+                                            2.a  sum{edge_ct[next_node_name] + T_em[next_node_name]}
+                                            2.b  download_tt[branch_begin_node_name] + sum{mobile_ct[next_node_name] + T_mm[next_node_name]}
+                                            2.c  download_tt[branch_begin_node_name] + sum{min(mobile_ct[next_node_name] + T_mm[next_node_name],edge_ct[next_node_name] + T_em[next_node_name])} 
+                                            }+ mobile_ct[branch_end_node_name]
+                                            }
+    2.dp_edge[branch_end_node_name] = min{
+                                            dp_edge[branch_begin_node_name] + {
+                                            1.a. sum{ edge_ct[next_node_name] + T_ee[next_node_name]}
+                                            1.b  download_tt[branch_begin_node_name] + sum{ mobile_ct[next_node_name] + T_me[next_node_name]}
+                                            1.c  download_tt[branch_begin_node_name] + sum{ min(edge_ct[next_node_name] + T_ee[next_node_name] ,mobile_ct[next_node_name] + T_me[next_node_name])} 
+                                            } + edge_ct[branch_end_node_name]
+                                            
+                                            dp_mobile[branch_begin_node_name] + {
+                                            2.a  sum{mobile_ct[next_node_name] + T_me[next_node_name]}
+                                            2.b  upload_tt[branch_begin_node_name] + sum{edge_ct[next_node_name] + T_ee[next_node_name]}
+                                            2.c  upload_tt[branch_begin_node_name] + sum{ min(edge_ct[next_node_name] + T_ee[next_node_name] ,mobile_ct[next_node_name] + T_me[next_node_name])} 
+                                            } + edge_ct[branch_end_node_name]
+                                            }
+    """
 
+    ''' 1. 分支结束节点在端设备执行 '''
     print('=' * 10, 'branch end dp ',branch_end_node_name, '=' * 10)
 
-
+    # 1.1 分支开始节点在端设备
     mobile_begin_min_value = 0
     mobile_begin_min_path = []
     # a.sum{mobile_ct[next_node_name] + T_mm[next_node_name]}
@@ -277,7 +337,7 @@ def dp_state_move_to_branch_end(nodes,branch_begin_node,
     if value < mobile_begin_min_value:
         mobile_begin_min_value = value
         mobile_begin_min_path = path
-
+    # 1.2 分支开始节点在边缘设备
     edge_begin_min_value = 0
     edge_begin_min_path = []
     # a.sum{edge_ct[next_node_name] + T_em[next_node_name]}
@@ -354,7 +414,8 @@ def dp_state_move_to_branch_end(nodes,branch_begin_node,
     else:
         path_mobile[branch_end_node_name] = [(branch_begin_node_name, 'edge')] + edge_begin_min_path
 
-
+    ''' 2. 分支结束节点在边缘设备执行 '''
+    ### 2.1 分支开始节点在边缘设备
     edge_begin_min_value = 0
     edge_begin_min_path = []
     # a. sum{ edge_ct[next_node_name] + T_ee[next_node_name]}
@@ -420,7 +481,7 @@ def dp_state_move_to_branch_end(nodes,branch_begin_node,
         edge_begin_min_value = value
         edge_begin_min_path = path
 
-
+    ### 2.2 分支开始节点在端设备
     mobile_begin_min_value = 0
     mobile_begin_min_path = []
     # a.sum{mobile_ct[next_node_name] + T_me[next_node_name]}
@@ -504,9 +565,17 @@ def dp_state_move_to_branch_end(nodes,branch_begin_node,
 
     return branch_end_node_name
 
-
+"""
+非线性拓扑分支算法 => 输入的DNN只能有一个出口
+"""
 def nonlinear_partition_algorithm(nodes,S,T,input_in_mobile=True):
-
+    '''
+        input_in_mobile: 表示原始输入数据是否在mobile
+        d_mobile: 状态结束时在移动设备执行的用时
+        d_edge: 状态结束时在边缘设备执行的用时
+    '''
+    # for node in nodes:
+    #     print(node)
     print()
     print('call for nonlinear_partition_algorithm,input_in_mobile = ',input_in_mobile)
     dp_mobile = {}
@@ -520,6 +589,7 @@ def nonlinear_partition_algorithm(nodes,S,T,input_in_mobile=True):
         dp_mobile[S.layer_name] = S.download_tt
         dp_edge[S.layer_name] = 0
 
+    # 先假设S只有一个后继
     assert len(S.next_nodes) == 1
     current_node = nodes[S.next_nodes[0]]
     # while current_node.layer_name != "T":
@@ -529,26 +599,27 @@ def nonlinear_partition_algorithm(nodes,S,T,input_in_mobile=True):
         dp_state_move_to_next(nodes, current_node, dp_mobile, path_mobile, dp_edge, path_edge)
 
         if len(current_node.next_nodes) == 1 :
-
+            """ 线性拓扑节点 <= 当前节点只有一个后继 """
             print(current_node_name,'linear node , move to next node ...')
-
+            # 下一个节点
             current_node = nodes[current_node.next_nodes[0]]
 
         else :
-
+            """ 有多个后继、分支结构开始"""
             print(current_node_name, 'branch begin ...')
-
+            # 二.移动到分支结束节点
             branch_end_node_name = dp_state_move_to_branch_end(nodes,
                                                                current_node, dp_mobile,
                                                                path_mobile, dp_edge, path_edge)
             branch_end_node = nodes[branch_end_node_name]
-
+            # 下一个节点
             while branch_end_node.next_nodes and (len(branch_end_node.next_nodes) > 1):
                 branch_end_node_name = dp_state_move_to_branch_end(nodes, branch_end_node,
                                                                    dp_mobile, path_mobile,
                                                                    dp_edge, path_edge)
                 branch_end_node = nodes[branch_end_node_name]
-
+            # 下一个节点 => 不是分支开始节点
+            # if branch_end_node_name == "T":
             if branch_end_node_name == T.layer_name:
                 print('!!!!!! branch_end_node_name == T.layer_name !!!!')
                 # print('dp_edge[T.layer_name] ',dp_edge[T.layer_name],path_edge[T.layer_name],)
@@ -557,13 +628,13 @@ def nonlinear_partition_algorithm(nodes,S,T,input_in_mobile=True):
                 break
             current_node = nodes[branch_end_node.next_nodes[0]]
 
-
-    if len(current_node.previous_nodes) == 1:
+    # current_node 现在应该是T节点
+    if len(current_node.previous_nodes) == 1: # 只有一个最终输出
         last_node_name = current_node.previous_nodes[0]
 
         print('=' * 10, T.layer_name, '=' * 10)
 
-
+        # 最终的结果提供给边缘
         T_end_in_edge = min(dp_edge[last_node_name], dp_mobile[last_node_name] + nodes[last_node_name].upload_tt)
         print("T_end_in_edge: %.4f  = min(%.4f ,%.4f + %.4f)"
               % (T_end_in_edge, dp_edge[last_node_name],
@@ -573,7 +644,7 @@ def nonlinear_partition_algorithm(nodes,S,T,input_in_mobile=True):
         else:
             path_edge[T.layer_name] = (last_node_name,'mobile')
 
-
+        # 最终的结果提供给mobile
         T_end_in_mobile = min(dp_mobile[last_node_name], dp_edge[last_node_name] + nodes[last_node_name].download_tt)
         print("T_end_in_mobile: %.4f  = min(%.4f ,%.4f + %.4f)"
               % (T_end_in_mobile, dp_mobile[last_node_name],
@@ -612,7 +683,8 @@ def path_track_back(path_edge, path_mobile,nodes,end_mobile=True,end_name='T',pr
                 print(last_node_name, run_place)
             track_info += last_node_name + ' ' + run_place  + '\n'
         else:
-
+            # 此时的last_node_name是分支结束节点 => 跳到分支开始节点
+            # {分支结束节点:((分支开始节点:place),(分支1起始节点:place),"{分支1}",(分支2起始节点:place),"{分支2}"....)}
             if print_info:
                 print('-' * 10,'branch end node',last_node_name,'-' * 10)
             track_info += ('-' * 10) + 'branch end node'+ last_node_name + ('-' * 10) +'\n'
@@ -638,7 +710,7 @@ if __name__ == '__main__':
     #VGG
     nodes, S = construct_DNN_topology(Model_Path="models/VGG/", main_target_name='predictions',mode='3G')
 
-
+    """分区算法执行"""
     print('+'*100)
     print('my_partition Algo run...')
     T_end_in_edge, path_edge, T_end_in_mobile, path_mobile = nonlinear_partition_algorithm(nodes, S,nodes['T'])

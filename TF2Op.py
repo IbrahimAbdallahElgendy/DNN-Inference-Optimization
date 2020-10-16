@@ -1,5 +1,11 @@
 # coding=utf-8
+"""
+Tensorflow graph 冷冻机
+转换Tensorflow训练模型为.pb
 
+Code adapted from:
+https://gist.github.com/morgangiraud/249505f540a5e53a48b0c1a869d370bf#file-medium-tffreeze-1-py
+"""
 import os
 from functools import reduce
 import tensorflow as tf
@@ -12,7 +18,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 def gen_freeze_graph_node_name(model_folder, output_path="frozen_model_node.txt",
                                output_node_names="dense_5/Softmax,dense_2/Softmax,dense_4/Softmax"):
-
+    # 我们获取检查点全路径
     try:
         checkpoint = tf.train.get_checkpoint_state(model_folder)
         input_checkpoint = checkpoint.model_checkpoint_path
@@ -21,30 +27,34 @@ def gen_freeze_graph_node_name(model_folder, output_path="frozen_model_node.txt"
         input_checkpoint = model_folder
         print("[INFO] Model folder", model_folder)
 
+    '''
+    # 在导出graph之前，我们需要精确确定output node
+    # 这就是TF决定他必须保留Graph的哪一部分以及可以丢弃哪一部分的方式
+    output_node_names = "dense_5/Softmax"  # NOTE: 改变这里!!!
+    '''
 
-
-
+    # 我们清除设备以允许TensorFlow控制它将在哪个设备上加载操作
     clear_devices = True
 
-
+    # 我们导入meta graph并取回一个Saver
     saver = tf.train.import_meta_graph(input_checkpoint + '.meta', clear_devices=clear_devices)
 
-
+    # 我们取回protobuf图定义
     graph = tf.get_default_graph()
     input_graph_def = graph.as_graph_def()
 
-
+    # 我们开始一个session并且保存图权重
     with tf.Session() as sess:
         saver.restore(sess, input_checkpoint)
 
-
+        # 我们使用内置的TF helper将变量导出为常量
         output_graph_def = graph_util.convert_variables_to_constants(
-            sess,
-            input_graph_def,
-            output_node_names.split(",")
+            sess,  # 该session用于检索权重
+            input_graph_def,  # sgraph_def用于检索节点
+            output_node_names.split(",")  # 输出节点名称用于选择有用的节点
         )
 
-
+        # 将推理的操作节点保存到文件
         with open(output_path,'w',encoding='utf-8') as wf:
             for op in output_graph_def.node:
                 print(op.name)
@@ -54,25 +64,25 @@ def gen_freeze_graph_node_name(model_folder, output_path="frozen_model_node.txt"
         print("[INFO] all done")
 
 def gen_android_node_json(infer_node_path,out_info_path,input_shape=[32 * 32 * 3]):
-
+    # 加载模型
     TargetNet = load_model('model.h5')
 
-
+    # 取得层名
     layer_names = [layer.name for layer in TargetNet.layers]
     print('layer_names ',len(layer_names),layer_names[:5])
-
+    # 层shape
     layer_shapes = [[1]+list(layer.output_shape[1:]) for layer in TargetNet.layers]
     print('layer_shapes ',len(layer_shapes),layer_shapes[:5])
-
+    # 层大小
     layer_out_sizes = [reduce(lambda x, y: x * y, layer.output_shape[1:], 1) for layer in TargetNet.layers]
     print('layer_out_sizes ', len(layer_out_sizes),layer_out_sizes[:5])
 
-
+    # 加载推理操作名
     ops = open(infer_node_path,'r',encoding='utf-8').readlines()
     ops = [x.strip() for x in ops]
     print('ops ',ops[:5])
 
-
+    # 取得每层的最后操作名
     last_ops = []
     for name in layer_names:
         # print('name',name)
@@ -90,11 +100,11 @@ def gen_android_node_json(infer_node_path,out_info_path,input_shape=[32 * 32 * 3
 
     print('len last_ops ',len(last_ops),last_ops[:5])
 
-
+        # 加载依赖关系
     layer_dependences = get_model_dependence()
     print('layer_dependences ',len(layer_dependences),layer_dependences[:5])
 
-
+    # 加载层名、层输出大小、层shape、层面到index的映射
     results = []
     name2index = {}
     for i in range(len(TargetNet.layers)):
@@ -130,10 +140,10 @@ def gen_android_node_json(infer_node_path,out_info_path,input_shape=[32 * 32 * 3
         json.dump(results, f)
 
 def gen_out_size(out_info_path):
-
+    # 加载模型
     TargetNet = load_model('model.h5')
 
-
+    # 层大小
     layer_out_sizes = [reduce(lambda x, y: x * y, layer.output_shape[1:], 1) for layer in TargetNet.layers]
     print('layer_out_sizes ', len(layer_out_sizes), layer_out_sizes[:5])
 
@@ -152,9 +162,9 @@ def gen_down_up_time(outsize_path,time_path):
             wf.write(str(size) + '\t' + str(0) +'\n')
 
 if __name__ == '__main__':
+    ''' meta 转 pb '''
+    gen_freeze_graph_node_name('out/', 'frozen_googlenet_node.txt')
 
-    gen_freeze_graph_node_name('out/', 'frozen_VGG_node.txt')
+    gen_android_node_json('frozen_googlenet_node.txt','googlenet_node.json')
 
-    gen_android_node_json('frozen_VGG_node.txt','VGG_node.json')
-
-    gen_out_size('VGG_outsize.json')
+    gen_out_size('googlenet_outsize.json')

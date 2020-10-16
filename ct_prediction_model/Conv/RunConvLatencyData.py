@@ -8,6 +8,9 @@ from keras import backend as K
 import numpy as np
 import pandas as pd
 
+'''
+创建卷积层模型
+'''
 def get_only_conv_model(input_shape,filters,kernel_size,
                         strides,padding,
                         activation,use_bias):
@@ -26,24 +29,33 @@ def run_once_conv(data_dict, input_shape,filters,
     model = get_only_conv_model(input_shape, filters, kernel_size=kernel_size,
                                 strides=strides, padding=padding,
                                 activation=activation, use_bias=use_bias)
-
+    
+    # 当前模型生成
     current_layer = model.layers[1]
     print('current_layer.name', current_layer.name)
     f_part = K.function([current_layer.input, K.learning_phase()],[current_layer.output])
 
+    # 创建输入变量
     input_shape = model.layers[1].input_shape[1:]
     print('input_shape ', input_shape)
     input_data = np.random.rand(*input_shape)
     input_data = [np.asarray(input_data).reshape((1, *input_shape))]
 
+    # 预先执行两次，第一次运行会有准备工作
     layer_out = f_part(input_data + [0])[0]
     layer_out = f_part(input_data + [0])[0]
 
+    # 系统信息
     data = psutil.virtual_memory()
-    mem_total = data.total / 1024 / 1024
+    # 内存总数
+    mem_total = data.total / 1024 / 1024  # 总内存,单位为byte/ 1024 / 1024 = Mb
+    # 内存空闲数
     mem_free = data.available / 1024 / 1024
+    # cpu数
     cpu_count = psutil.cpu_count()
-    user_cpu_times, system_cpu_times, idle_cpu_times, interrupt_cpu_times, dpc_cpu_times = psutil.cpu_times()
+    # cpu 时间
+    user_cpu_times, nice_cpu_times, system_cpu_times, idle_cpu_times = psutil.cpu_times()
+    # cpu利用率
     cpu_percent = psutil.cpu_percent(interval=1)
 
     used_time = 0.0
@@ -62,10 +74,9 @@ def run_once_conv(data_dict, input_shape,filters,
     data_dict['cpu_count'].append(cpu_count)
     data_dict['cpu_percent'].append(cpu_percent)
     data_dict['user_cpu_times'].append(user_cpu_times)
+    data_dict['nice_cpu_times'].append(nice_cpu_times)
     data_dict['system_cpu_times'].append(system_cpu_times)
     data_dict['idle_cpu_times'].append(idle_cpu_times)
-    data_dict['interrupt_cpu_times'].append(interrupt_cpu_times)
-    data_dict['dpc_cpu_times'].append(dpc_cpu_times)
     data_dict['input_width'].append(input_shape[0])
     data_dict['input_height'].append(input_shape[1])
     data_dict['input_channel'].append(input_shape[2])
@@ -80,24 +91,28 @@ def run_once_conv(data_dict, input_shape,filters,
 
 def run_once():
     
-    input_shape = (224, 224, 3)
+    input_shape = (224, 224, 3)  # (32, 32, 3)
     img_input = Input(shape=input_shape)
     x = Conv2D(64, (3, 3), activation='relu', padding='same')(img_input)
     model = Model(img_input, x)
 
+    # 当前模型生成
     current_layer = model.layers[1]
     print('current_layer.name', current_layer.name)
     f_part = K.function([current_layer.input, K.learning_phase()],
                         [current_layer.output])
 
+    # 创建输入变量
     input_shape = model.layers[1].input_shape[1:]
     print('input_shape ', input_shape)
     input_data = np.random.rand(*input_shape)
     input_data = [np.asarray(input_data).reshape((1, *input_shape))]
 
+    # 预先执行两次
     layer_out = f_part(input_data + [0])[0]
     layer_out = f_part(input_data + [0])[0]
 
+    # 开始统计计算时间
     begin = time.time()
     layer_out = f_part(input_data + [0])[0]
     end = time.time()
@@ -106,7 +121,7 @@ def run_once():
     print('used time ', used_time, ' ms')
     
 if __name__ == '__main__':
-    repeats = 1
+    repeats = 1 # 不重复执行，负载会发生变化
     data_dict = {
         'label':[],
         'mem_total':[],
@@ -114,10 +129,9 @@ if __name__ == '__main__':
         'cpu_count':[],
         'cpu_percent':[],
         'user_cpu_times':[],
+        'nice_cpu_times':[],
         'system_cpu_times':[],
         'idle_cpu_times':[],
-        'interrupt_cpu_times': [],
-        'dpc_cpu_times': [],
         'input_width':[],
         'input_height':[],
         'input_channel':[],
@@ -144,6 +158,7 @@ if __name__ == '__main__':
                                               kernel_size, strides, padding,
                                               activation, use_bias)
 
+    # 将输出结果写到本地
     data = pd.DataFrame(data_dict)
     print('shape ', data.shape)
     print(data.head())

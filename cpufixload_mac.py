@@ -28,7 +28,7 @@ class ControlThread(threading.Thread):
 
 threadList=[]
  
-print('Start Thread Number:' + sys.argv[2] + '\tSleep Time(ms):'+ sys.argv[5])
+print('Start Thread Number:' + sys.argv[3] + '\tSleep Time(ms):'+ sys.argv[5])
  
 def quit(signum, frame):
   print('You choose to stop me.')

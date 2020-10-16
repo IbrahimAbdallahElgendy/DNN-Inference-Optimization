@@ -150,7 +150,7 @@ public class LayerDownTimeActivity extends AppCompatActivity {
             }finally {
                 if(serverSocket != null){
                     try{
-                        serverSocket.close();//这里是我自己加的
+                        serverSocket.close();
                     }catch(IOException e){
                         e.printStackTrace();
                     }

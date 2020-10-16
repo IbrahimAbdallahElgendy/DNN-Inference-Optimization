@@ -8,25 +8,25 @@ class Node():
     def __init__(self,layer_name,next_nodes,previous_nodes,
                  edge_ct,mobile_ct,upload_tt,download_tt,out_size,
                  out_shape,index):
-
+        # 该层的名字
         self.layer_name = layer_name
-
+        # 该层的后继节点列表
         self.next_nodes = next_nodes
-
+        # 该层的前驱节点列表
         self.previous_nodes = previous_nodes
-
+        # 该层的边缘计算时间
         self.edge_ct = edge_ct
-
+        # 该层的mobile计算时间
         self.mobile_ct = mobile_ct
-
+        # 该层从mobile->edge的传输时间(UpTime)
         self.upload_tt = upload_tt
-
+        # 该层从edge->mobile的传输时间(DownTime)
         self.download_tt = download_tt
-
+        # 输出维度
         self.out_size = out_size
-
+        # 输出大小
         self.out_shape = out_shape
-
+        # 层索引
         self.index = index
 
     def __str__(self):
@@ -58,28 +58,30 @@ class MyDNNNet():
 
 
     def transform_topology(self,mode):
-
+        """0. 网络带宽配置"""
         bandwidth_dict = {'3G':[1.1,4.6],
                           '4G':[8.8,29.1],
                           'WIFI':[18.88,54.97],
                           'execute':[None,None]
                           }
-
+        # self.nodes, self.S, self.T
+        """1. 加载模型文件、计算延迟、传输延迟等配置文件 """
+        # 模型
         dnn_net = load_model(self.h5_model_path)
-
+        # 边缘计算时间
         edge_ct_list = [1 * float(x.strip().split('\t')[1]) for x in open(self.edge_ct_path,'r',encoding='utf-8').readlines()]
         print('edge_ct_list len ',len(edge_ct_list),edge_ct_list[:5])
-
+        # mobile计算时间
         mobile_ct_list = [ 1 * float(x.strip().split('\t')[1]) for x in open(self.mobile_ct_path,'r',encoding='utf-8').readlines()]
         print('mobile_ct_list len ',len(mobile_ct_list),mobile_ct_list[:5])
-
+        # 从mobile->edge的传输时间(UpTime)
         upload_tt_dic = load_tt_dict(self.upload_tt_path,bandwidth_dict[mode][0])
         print('upload_tt_dic ',upload_tt_dic)
-
+        # 从edge->mobile的传输时间(DownTime)
         download_tt_dic = load_tt_dict(self.download_tt_path,bandwidth_dict[mode][1])
         print('download_tt_dic ',download_tt_dic)
 
-
+        """2. 遍历每层创建Node"""
         #layer_name,next_nodes,previous_nodes,
         # edge_ct,mobile_ct,upload_tt,download_tt
         index = 0
@@ -88,7 +90,7 @@ class MyDNNNet():
             out_size = int(reduce(lambda x, y: x * y, layer.output_shape[1:], 1))
 
             if layer.name == 'input_1':
-
+                ''' 创建S节点 '''
                 self.S = Node(layer_name=layer.name,
                               next_nodes=[],previous_nodes=None,
                               edge_ct=0,mobile_ct=0,
@@ -96,28 +98,28 @@ class MyDNNNet():
                               out_size=out_size,out_shape=out_shape,index=index)
                 self.nodes[layer.name] = self.S
             else:
-
+                ''' 创建非S、T节点'''
                 previous_nodes = []
-
+                # 遍历前驱节点
                 for node in layer._inbound_nodes:
                     for i in range(len(node.inbound_layers)):
                         inbound_layer = node.inbound_layers[i].name
                         previous_nodes.append(inbound_layer)
-
+                # 新建普通层节点
                 simple_node = Node(layer_name=layer.name,
                                    next_nodes=[],previous_nodes=previous_nodes,
                                    edge_ct=edge_ct_list[index],mobile_ct=mobile_ct_list[index],
                                    upload_tt=upload_tt_dic[out_size],download_tt=download_tt_dic[out_size],
                                    out_size=out_size, out_shape=out_shape,index=index)
 
-
+                # 添加后继节点
                 for pre_node_name in previous_nodes:
                     self.nodes[pre_node_name].next_nodes.append(layer.name)
 
                 self.nodes[layer.name] = simple_node
 
             index += 1
-
+        # 查找所有没有后继节点的节点
         T_previous_nodes = []
         for name,node in self.nodes.items():
             if len(node.next_nodes) == 0:
@@ -125,7 +127,7 @@ class MyDNNNet():
         for T_pre_node in T_previous_nodes:
             self.nodes[T_pre_node].next_nodes.append("T")
 
-
+        ''' 创建T节点 '''
         self.T = Node(layer_name="T",
                       next_nodes=None, previous_nodes=T_previous_nodes,
                       edge_ct=0, mobile_ct=0,
@@ -135,28 +137,30 @@ class MyDNNNet():
         self.nodes[self.T.layer_name] = self.T
 
     def transform_rnn_topology(self,mode,sequence_len = 256):
-
+        """0. 网络带宽配置"""
         bandwidth_dict = {'3G':[1.1,4.6],
                           '4G':[8.8,29.1],
                           'WIFI':[18.88,54.97],
                           'execute':[None,None]
                           }
-
+        # self.nodes, self.S, self.T
+        """1. 加载模型文件、计算延迟、传输延迟等配置文件 """
+        # 模型
         dnn_net = load_model(self.h5_model_path)
-
+        # 边缘计算时间
         edge_ct_list = [1 * float(x.strip().split('\t')[1]) for x in open(self.edge_ct_path,'r',encoding='utf-8').readlines()]
         print('edge_ct_list len ',len(edge_ct_list),edge_ct_list[:5])
-
+        # mobile计算时间
         mobile_ct_list = [ 1 * float(x.strip().split('\t')[1]) for x in open(self.mobile_ct_path,'r',encoding='utf-8').readlines()]
         print('mobile_ct_list len ',len(mobile_ct_list),mobile_ct_list[:5])
-
+        # 从mobile->edge的传输时间(UpTime)
         upload_tt_dic = load_tt_dict(self.upload_tt_path,bandwidth_dict[mode][0])
         print('upload_tt_dic ',upload_tt_dic)
-
+        # 从edge->mobile的传输时间(DownTime)
         download_tt_dic = load_tt_dict(self.download_tt_path,bandwidth_dict[mode][1])
         print('download_tt_dic ',download_tt_dic)
 
-
+        """2. 遍历每层创建Node"""
         #layer_name,next_nodes,previous_nodes,
         # edge_ct,mobile_ct,upload_tt,download_tt
         index = 0
@@ -166,7 +170,7 @@ class MyDNNNet():
             out_size = reduce(lambda x, y: x * y, layer.output_shape[2:], sequence_len)
 
             if layer.name == 'input_1':
-
+                ''' 创建S节点 '''
                 self.S = Node(layer_name=layer.name,
                               next_nodes=[],previous_nodes=None,
                               edge_ct=0,mobile_ct=0,
@@ -174,27 +178,28 @@ class MyDNNNet():
                               out_size=out_size,out_shape=out_shape,index=index)
                 self.nodes[layer.name] = self.S
             else:
-
+                ''' 创建非S、T节点'''
                 previous_nodes = []
+                # 遍历前驱节点
                 for node in layer._inbound_nodes:
                     for i in range(len(node.inbound_layers)):
                         inbound_layer = node.inbound_layers[i].name
                         previous_nodes.append(inbound_layer)
-
+                # 新建普通层节点
                 simple_node = Node(layer_name=layer.name,
                                    next_nodes=[],previous_nodes=previous_nodes,
                                    edge_ct=edge_ct_list[index],mobile_ct=mobile_ct_list[index],
                                    upload_tt=upload_tt_dic[out_size],download_tt=download_tt_dic[out_size],
                                    out_size=out_size, out_shape=out_shape,index=index)
 
-
+                # 添加后继节点
                 for pre_node_name in previous_nodes:
                     self.nodes[pre_node_name].next_nodes.append(layer.name)
 
                 self.nodes[layer.name] = simple_node
 
             index += 1
-
+        # 查找所有没有后继节点的节点
         T_previous_nodes = []
         for name,node in self.nodes.items():
             if len(node.next_nodes) == 0:
@@ -202,7 +207,7 @@ class MyDNNNet():
         for T_pre_node in T_previous_nodes:
             self.nodes[T_pre_node].next_nodes.append("T")
 
-
+        ''' 创建T节点 '''
         self.T = Node(layer_name="T",
                       next_nodes=None, previous_nodes=T_previous_nodes,
                       edge_ct=0, mobile_ct=0,
@@ -218,7 +223,7 @@ class MyDNNNet():
 
         self.multi_net = {}
 
-
+        "1.先找到主输出节点包含的所有网络节点"
         main_nodes_name = [self.main_target_name]
         queue = []
         queue.append(self.main_target_name)
@@ -232,14 +237,14 @@ class MyDNNNet():
                         main_nodes_name.append(pre_name)
         print('len main_nodes_name',len(main_nodes_name))
         print('main node ',main_nodes_name[::-1])
-
+        "2.构建主输出节点包含的所有网络"
         print('build main top')
         main_nodes = {}
         for name in main_nodes_name:
             # print(name)
             node = copy.deepcopy(self.nodes[name])
             new_next_nodes = []
-            for next_name in node.next_nodes:
+            for next_name in node.next_nodes:# 去掉不涉及主输出网络的路径
                 if next_name in main_nodes_name:
                     new_next_nodes.append(next_name)
             node.next_nodes = new_next_nodes
@@ -254,11 +259,12 @@ class MyDNNNet():
         self.multi_net[self.main_target_name] = (main_nodes,self.S)
 
         auxiliary_targets_name = copy.deepcopy(self.T.previous_nodes)
-        auxiliary_targets_name.remove(self.main_target_name)
+        auxiliary_targets_name.remove(self.main_target_name)# auxiliary_targets保存主输出以外的目标节点
+        "3.构建辅助输出节点包含的所有网络"
         print('auxiliary_targets_name ',auxiliary_targets_name)
         for aux_target_name in auxiliary_targets_name:
             print('aux_target_name',aux_target_name)
-
+            # 1. 先找到该辅助网络中不在主网络中的节点
             aux_nodes_name = [aux_target_name]
             queue = []
             queue.append(aux_target_name)
@@ -271,13 +277,13 @@ class MyDNNNet():
                         aux_nodes_name.append(pre_node)
             print('len aux_nodes_name ',len(aux_nodes_name))
             print('aux_nodes_name ', aux_nodes_name[::-1])
-
+            # 2.构造辅助网络不在主网络中的节点
             aux_nodes = {}
             for name in aux_nodes_name:
                 # print(name)
                 node = copy.deepcopy(self.nodes[name])
                 new_previous_nodes = []
-                for pre_name in node.previous_nodes:
+                for pre_name in node.previous_nodes:  # 去掉主输出网络的路径
                     if pre_name not in main_nodes_name:
                         new_previous_nodes.append(pre_name)
                 node.previous_nodes = new_previous_nodes
@@ -306,8 +312,9 @@ def construct_DNN_topology(Model_Path ,main_target_name,mode,is_rnn=False):
     # for name, node in myDNNNet.nodes.items():
     #     print(node)
 
+    '''判断是否只有一个输出'''
     if myDNNNet.is_multi_output():
-
+        ''' 拆分主辅网络 '''
         print(Model_Path,'model has multi outputs...')
         myDNNNet.handle_multi_output()
         main_nodes, main_S = myDNNNet.multi_net[main_target_name]
@@ -342,9 +349,9 @@ def construct_multi_input_DNN_topology(Model_Path ,main_target_name,mode):
     # for name, node in myDNNNet.nodes.items():
     #     print(node)
 
-
+    '''判断是否只有一个输出'''
     if myDNNNet.is_multi_output():
-
+        ''' 拆分主辅网络 '''
         print(Model_Path,'model has multi outputs...')
         myDNNNet.handle_multi_output()
         main_nodes, main_S = myDNNNet.multi_net[main_target_name]
@@ -352,7 +359,10 @@ def construct_multi_input_DNN_topology(Model_Path ,main_target_name,mode):
         print(Model_Path, 'model has only one output...')
         main_nodes, main_S = myDNNNet.nodes,myDNNNet.S
 
-
+    """
+    构建S节点
+    """
+    # 找到输入节点
     input_nodes = []
     input_upload_tt = 0
     input_download_tt = 0

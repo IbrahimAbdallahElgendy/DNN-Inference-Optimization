@@ -8,6 +8,9 @@ from keras import backend as K
 import numpy as np
 import pandas as pd
 
+'''
+创建softmax层模型
+'''
 def get_only_fc_model(input_dim):
     print('create model ...')
     inputs = Input(shape=(input_dim,))
@@ -20,26 +23,36 @@ def run_once_fc(data_dict, input_dim):
 
     model = get_only_fc_model(input_dim)
 
+    # 当前模型生成
     current_layer = model.layers[1]
     print('current_layer.name', current_layer.name)
     f_part = K.function([current_layer.input, K.learning_phase()], [current_layer.output])
 
+    # 创建输入变量
     input_shape = model.layers[1].input_shape[1:]
     print('input_shape ', input_shape)
     input_data = np.random.rand(*input_shape)
     input_data = [np.asarray(input_data).reshape((1, *input_shape))]
 
+    # 输出大小
     output_shape = model.layers[1].output_shape[1:]
     print('output_shape ', output_shape)
 
+    # 预先执行两次，第一次运行会有准备工作
     layer_out = f_part(input_data + [0])[0]
     layer_out = f_part(input_data + [0])[0]
 
+    # 系统信息
     data = psutil.virtual_memory()
-    mem_total = data.total / 1024 / 1024
+    # 内存总数
+    mem_total = data.total / 1024 / 1024  # 总内存,单位为byte/ 1024 / 1024 = Mb
+    # 内存空闲数
     mem_free = data.available / 1024 / 1024
+    # cpu数
     cpu_count = psutil.cpu_count()
-    user_cpu_times, system_cpu_times, idle_cpu_times, interrupt_cpu_times, dpc_cpu_times = psutil.cpu_times()
+    # cpu 时间
+    user_cpu_times, nice_cpu_times, system_cpu_times, idle_cpu_times = psutil.cpu_times()
+    # cpu利用率
     cpu_percent = psutil.cpu_percent(interval=1)
 
     used_time = 0.0
@@ -58,10 +71,9 @@ def run_once_fc(data_dict, input_dim):
     data_dict['cpu_count'].append(cpu_count)
     data_dict['cpu_percent'].append(cpu_percent)
     data_dict['user_cpu_times'].append(user_cpu_times)
+    data_dict['nice_cpu_times'].append(nice_cpu_times)
     data_dict['system_cpu_times'].append(system_cpu_times)
     data_dict['idle_cpu_times'].append(idle_cpu_times)
-    data_dict['interrupt_cpu_times'].append(interrupt_cpu_times)
-    data_dict['dpc_cpu_times'].append(dpc_cpu_times)
 
     data_dict['input_dim'].append(input_dim)
 
@@ -79,26 +91,36 @@ def run_once_fc_input_shape(data_dict,input_shape,
 
     model = get_inputshape_fc_model(input_shape)
 
+    # 当前模型生成
     current_layer = model.layers[1]
     print('current_layer.name', current_layer.name)
     f_part = K.function([current_layer.input, K.learning_phase()], [current_layer.output])
 
+    # 创建输入变量
     input_shape = model.layers[1].input_shape[1:]
     print('input_shape ', input_shape)
     input_data = np.random.rand(*input_shape)
     input_data = [np.asarray(input_data).reshape((1, *input_shape))]
 
+    # 输出大小
     output_shape = model.layers[1].output_shape[1:]
     print('output_shape ', output_shape)
 
+    # 预先执行两次，第一次运行会有准备工作
     layer_out = f_part(input_data + [0])[0]
     layer_out = f_part(input_data + [0])[0]
 
+    # 系统信息
     data = psutil.virtual_memory()
-    mem_total = data.total / 1024 / 1024
+    # 内存总数
+    mem_total = data.total / 1024 / 1024  # 总内存,单位为byte/ 1024 / 1024 = Mb
+    # 内存空闲数
     mem_free = data.available / 1024 / 1024
+    # cpu数
     cpu_count = psutil.cpu_count()
-    user_cpu_times, system_cpu_times, idle_cpu_times, interrupt_cpu_times, dpc_cpu_times = psutil.cpu_times()
+    # cpu 时间
+    user_cpu_times, nice_cpu_times, system_cpu_times, idle_cpu_times = psutil.cpu_times()
+    # cpu利用率
     cpu_percent = psutil.cpu_percent(interval=1)
 
     used_time = 0.0
@@ -117,10 +139,11 @@ def run_once_fc_input_shape(data_dict,input_shape,
     data_dict['cpu_count'].append(cpu_count)
     data_dict['cpu_percent'].append(cpu_percent)
     data_dict['user_cpu_times'].append(user_cpu_times)
+    data_dict['nice_cpu_times'].append(nice_cpu_times)
     data_dict['system_cpu_times'].append(system_cpu_times)
     data_dict['idle_cpu_times'].append(idle_cpu_times)
-    data_dict['interrupt_cpu_times'].append(interrupt_cpu_times)
-    data_dict['dpc_cpu_times'].append(dpc_cpu_times)
+
+    # data_dict['input_dim'].append(input_dim)
     data_dict['out_dim'].append(out_dim)
     data_dict['last_deep_dim'].append(last_deep_dim)
 
@@ -131,19 +154,23 @@ def run_once():
     # Create model.
     model = Model(inputs, x)
 
+    # 当前模型生成
     current_layer = model.layers[1]
     print('current_layer.name', current_layer.name)
     f_part = K.function([current_layer.input, K.learning_phase()],
                         [current_layer.output])
 
+    # 创建输入变量
     input_shape = model.layers[1].input_shape[1:]
     print('input_shape ', input_shape)
     input_data = np.random.rand(*input_shape)
     input_data = [np.asarray(input_data).reshape((1, *input_shape))]
 
+    # 预先执行两次
     layer_out = f_part(input_data + [0])[0]
     layer_out = f_part(input_data + [0])[0]
 
+    # 开始统计计算时间
     begin = time.time()
     layer_out = f_part(input_data + [0])[0]
     end = time.time()
@@ -153,7 +180,7 @@ def run_once():
 
 
 if __name__ == '__main__':
-    repeats = 1
+    repeats = 1  # 不重复执行，负载会发生变化
     data_dict = {
         'label': [],
         'mem_total': [],
@@ -161,13 +188,27 @@ if __name__ == '__main__':
         'cpu_count': [],
         'cpu_percent': [],
         'user_cpu_times': [],
+        'nice_cpu_times': [],
         'system_cpu_times': [],
         'idle_cpu_times': [],
-        'interrupt_cpu_times': [],
-        'dpc_cpu_times': [],
+        # 'input_dim': [],
         'out_dim':[],
         'last_deep_dim':[],
     }
+    # for input_dim in [ 2, 4, 8, 16, 32, 64,
+    #                    10, 20, 30, 40, 50, 60, 70, 80, 90,
+    #                    100,200, 300, 400, 500, 600, 700, 800, 900,
+    #                    1000, 2000, 3000, 4000, 5000,
+    #                    128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920, 2048, 2176,
+    #                    2304, 2432, 2560, 2688, 2816, 2944, 3072, 3200, 3328, 3456, 3584, 3712, 3840, 3968, 4096, 4224,
+    #                    4352, 4480, 4608, 4736, 4864, 4992]:
+    #     for i in range(5):
+    # dims = [2*i for i in range(1,100)]+[50*i for i in range(4,100)]+[32*i for i in range(7,157)]
+    # dims = [2*i for i in range(1,1500)] + [3*i for i in range(1,1000)]
+    # for input_dim in dims:
+    #     for i in range(1):
+    #         print(input_dim)
+    #         run_once_fc(data_dict, input_dim)
     """
     softmax_train_inputshape.csv
     """
@@ -177,8 +218,10 @@ if __name__ == '__main__':
             input_shape = (out_dim ,last_deep_dim)
             print(input_shape)
             for i in range(1):
-                run_once_fc_input_shape(data_dict,input_shape, out_dim ,last_deep_dim)
+                run_once_fc_input_shape(data_dict,input_shape,
+                                        out_dim ,last_deep_dim)
 
+    # 将输出结果写到本地
     data = pd.DataFrame(data_dict)
     print('shape ', data.shape)
     print(data.head())

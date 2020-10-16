@@ -26,12 +26,16 @@ def load_tt_dict(path,bandwidth=None):
 
 def get_model_dependence():
 
-    layer_dependences = []
-    TargetNet = load_model('F:\Graduation project\MasterCode\models\VGG\model.h5')
+    layer_dependences = [] # [(前驱节点名,inbound_node_index,inbound_tensor_index)...]
 
+    # 加载 Keras model
+    TargetNet = load_model('model.h5')
+
+    # 遍历layer
     for layer in TargetNet.layers:
         previous_nodes = []
 
+        # 遍历前驱节点
         for node in layer._inbound_nodes:
             for i in range(len(node.inbound_layers)):
                 inbound_layer = node.inbound_layers[i].name
@@ -42,6 +46,7 @@ def get_model_dependence():
         layer_dependences.append(previous_nodes)
 
 
+    # 打印最终结果
     for i in range(len(layer_dependences)):
         print(i,layer_dependences[i])
 

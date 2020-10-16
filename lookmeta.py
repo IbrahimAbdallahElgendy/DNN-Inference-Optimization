@@ -9,4 +9,4 @@ def wirte_graph_log(meta_file,log_dir):
     with tf.Session(graph=g) as sess:
         tf.summary.FileWriter(logdir=log_dir,graph=g)
 if __name__ == '__main__':
-   wirte_graph_log('F:\Graduation project\MasterCode\models\AlexNet\out\AlexNet.chkp.meta','./log/')
+   wirte_graph_log('\MasterCode\models\ResNet\out\ResNet.chkp.meta','./log/')
