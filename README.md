@@ -82,7 +82,7 @@ Socket communication between client and server.
 
   The interface of the Android client is relatively simple, as shown below, important information is printed in the log, pay attention to the log. The corresponding relationship between each button in the interface and the Android code Activity file is as follows:
 
-![img](README.assets/clip_image002.png)
+  ![img](README.assets/clip_image002.png)
 
   The location of the corresponding Activity code: 		
   android/app/src/main/java/aflak/me/tensorflowlitexor/xxx.java.
